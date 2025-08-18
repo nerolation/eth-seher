@@ -452,27 +452,65 @@ def export_to_odf(filename, tx_info, trace, state_diff=None):
     # Transaction data
     overview_data = []
     if tx_info:
+        # Basic transaction info
         overview_data.extend([
             ("Transaction Hash", tx_info.get("hash", "N/A")),
             ("Block Number", str(int(tx_info.get("blockNumber", "0x0"), 16)) if tx_info.get("blockNumber") else "N/A"),
+            ("Transaction Index", str(int(tx_info.get("transactionIndex", "0x0"), 16)) if tx_info.get("transactionIndex") else "N/A"),
             ("From", tx_info.get("from", "N/A")),
             ("To", tx_info.get("to", "N/A")),
             ("Value", format_hex_value(tx_info.get("value", "0x0"))),
-            ("Gas Limit", str(int(tx_info.get("gas", "0x0"), 16)) if tx_info.get("gas") else "N/A"),
-            ("Gas Price", format_hex_value(tx_info.get("gasPrice", "0x0")) if tx_info.get("gasPrice") else "N/A"),
+            ("Input Data Length", f"{len(tx_info.get('input', '0x')) - 2} bytes" if tx_info.get('input') else "0 bytes"),
             ("Nonce", str(int(tx_info.get("nonce", "0x0"), 16)) if tx_info.get("nonce") else "N/A"),
-            ("Type", tx_info.get("type", "N/A")),
         ])
+        
+        # Gas details
+        overview_data.extend([
+            ("Gas Limit", f"{int(tx_info.get('gas', '0x0'), 16):,}" if tx_info.get("gas") else "N/A"),
+        ])
+        
+        # Transaction type and gas pricing
+        tx_type = tx_info.get("type", "0x0")
+        overview_data.append(("Transaction Type", f"Type {int(tx_type, 16)}" if tx_type else "Legacy"))
+        
+        if tx_type == "0x2":  # EIP-1559
+            if tx_info.get("maxFeePerGas"):
+                overview_data.append(("Max Fee Per Gas", format_hex_value(tx_info.get("maxFeePerGas", "0x0"))))
+            if tx_info.get("maxPriorityFeePerGas"):
+                overview_data.append(("Max Priority Fee", format_hex_value(tx_info.get("maxPriorityFeePerGas", "0x0"))))
+        else:  # Legacy or Type 1
+            if tx_info.get("gasPrice"):
+                overview_data.append(("Gas Price", format_hex_value(tx_info.get("gasPrice", "0x0"))))
+        
+        # Additional fields
+        if tx_info.get("chainId"):
+            overview_data.append(("Chain ID", str(int(tx_info.get("chainId", "0x1"), 16))))
+        if tx_info.get("blockHash"):
+            overview_data.append(("Block Hash", tx_info.get("blockHash")))
+        if tx_info.get("r") and tx_info.get("s") and (tx_info.get("v") or tx_info.get("yParity")):
+            overview_data.append(("Signature", "Present"))
     
     # Add trace summary
     if trace:
         gas_used = int(trace.get("gasUsed", "0x0"), 16)
         status = "FAILED" if trace.get("error") else "SUCCESS"
+        
+        # Calculate gas efficiency
+        gas_limit = int(tx_info.get("gas", "0x0"), 16) if tx_info and tx_info.get("gas") else gas_used * 2
+        efficiency = (gas_used / gas_limit * 100) if gas_limit > 0 else 0
+        
         overview_data.extend([
             ("Status", status),
             ("Gas Used", f"{gas_used:,}"),
+            ("Gas Efficiency", f"{efficiency:.1f}%"),
             ("Error", trace.get("error", "None")),
         ])
+        
+        # Count total calls
+        def count_calls(node):
+            return 1 + sum(count_calls(c) for c in node.get("calls", []))
+        total_calls = count_calls(trace) - 1
+        overview_data.append(("Total Internal Calls", str(total_calls)))
     
     for field, value in overview_data:
         row = TableRow()
