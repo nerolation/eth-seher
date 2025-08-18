@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 import argparse, json, sys, requests
 from datetime import datetime
+from odf.opendocument import OpenDocumentSpreadsheet
+from odf.style import Style, TextProperties, TableColumnProperties, TableCellProperties, ParagraphProperties
+from odf.number import NumberStyle, CurrencyStyle, Number, Text as NumText
+from odf.table import Table, TableColumn, TableRow, TableCell
+from odf.text import P
 
 # Load RPC configuration
 try:
@@ -412,6 +417,205 @@ def print_summary(trace, state_diff=None):
     
     print(f"\n{STYLE['blue']}{'═' * 80}{STYLE['reset']}\n")
 
+def export_to_odf(filename, tx_info, trace, state_diff=None):
+    """Export trace data to ODF spreadsheet format"""
+    doc = OpenDocumentSpreadsheet()
+    
+    # Create styles
+    header_style = Style(name="HeaderStyle", family="table-cell")
+    header_style.addElement(TextProperties(fontweight="bold"))
+    header_style.addElement(TableCellProperties(backgroundcolor="#4472C4"))
+    header_style.addElement(TextProperties(color="#FFFFFF"))
+    doc.automaticstyles.addElement(header_style)
+    
+    success_style = Style(name="SuccessStyle", family="table-cell")
+    success_style.addElement(TableCellProperties(backgroundcolor="#70AD47"))
+    success_style.addElement(TextProperties(color="#FFFFFF"))
+    doc.automaticstyles.addElement(success_style)
+    
+    error_style = Style(name="ErrorStyle", family="table-cell")
+    error_style.addElement(TableCellProperties(backgroundcolor="#FF0000"))
+    error_style.addElement(TextProperties(color="#FFFFFF"))
+    doc.automaticstyles.addElement(error_style)
+    
+    # Sheet 1: Transaction Overview
+    overview_table = Table(name="Transaction Overview")
+    
+    # Headers
+    header_row = TableRow()
+    for header in ["Field", "Value"]:
+        cell = TableCell(stylename=header_style)
+        cell.addElement(P(text=header))
+        header_row.addElement(cell)
+    overview_table.addElement(header_row)
+    
+    # Transaction data
+    overview_data = []
+    if tx_info:
+        overview_data.extend([
+            ("Transaction Hash", tx_info.get("hash", "N/A")),
+            ("Block Number", str(int(tx_info.get("blockNumber", "0x0"), 16)) if tx_info.get("blockNumber") else "N/A"),
+            ("From", tx_info.get("from", "N/A")),
+            ("To", tx_info.get("to", "N/A")),
+            ("Value", format_hex_value(tx_info.get("value", "0x0"))),
+            ("Gas Limit", str(int(tx_info.get("gas", "0x0"), 16)) if tx_info.get("gas") else "N/A"),
+            ("Gas Price", format_hex_value(tx_info.get("gasPrice", "0x0")) if tx_info.get("gasPrice") else "N/A"),
+            ("Nonce", str(int(tx_info.get("nonce", "0x0"), 16)) if tx_info.get("nonce") else "N/A"),
+            ("Type", tx_info.get("type", "N/A")),
+        ])
+    
+    # Add trace summary
+    if trace:
+        gas_used = int(trace.get("gasUsed", "0x0"), 16)
+        status = "FAILED" if trace.get("error") else "SUCCESS"
+        overview_data.extend([
+            ("Status", status),
+            ("Gas Used", f"{gas_used:,}"),
+            ("Error", trace.get("error", "None")),
+        ])
+    
+    for field, value in overview_data:
+        row = TableRow()
+        cell1 = TableCell()
+        cell1.addElement(P(text=field))
+        row.addElement(cell1)
+        
+        cell2 = TableCell()
+        if field == "Status":
+            cell2.setAttribute("stylename", error_style if value == "FAILED" else success_style)
+        cell2.addElement(P(text=str(value)))
+        row.addElement(cell2)
+        overview_table.addElement(row)
+    
+    doc.spreadsheet.addElement(overview_table)
+    
+    # Sheet 2: Call Trace
+    trace_table = Table(name="Call Trace")
+    
+    # Headers
+    header_row = TableRow()
+    for header in ["Depth", "Type", "From", "To", "Method", "Value", "Gas Used", "Error"]:
+        cell = TableCell(stylename=header_style)
+        cell.addElement(P(text=header))
+        header_row.addElement(cell)
+    trace_table.addElement(header_row)
+    
+    # Flatten trace into rows
+    def flatten_trace(node, depth=0):
+        rows = []
+        if node:
+            method = ""
+            if node.get("input") and len(node.get("input")) >= 10:
+                sig = node.get("input")[:10]
+                if sig in METHOD_CACHE:
+                    method = METHOD_CACHE[sig]
+                else:
+                    METHOD_CACHE[sig] = get_method_signature(sig)
+                    method = METHOD_CACHE[sig] or sig
+            
+            rows.append({
+                "depth": depth,
+                "type": node.get("type", "CALL"),
+                "from": node.get("from", ""),
+                "to": node.get("to", ""),
+                "method": method,
+                "value": format_hex_value(node.get("value", "0x0")),
+                "gas_used": str(int(node.get("gasUsed", "0x0"), 16)),
+                "error": node.get("error", "")
+            })
+            
+            for call in node.get("calls", []):
+                rows.extend(flatten_trace(call, depth + 1))
+        
+        return rows
+    
+    trace_rows = flatten_trace(trace)
+    for trace_data in trace_rows:
+        row = TableRow()
+        for field in ["depth", "type", "from", "to", "method", "value", "gas_used", "error"]:
+            cell = TableCell()
+            if field == "error" and trace_data[field]:
+                cell.setAttribute("stylename", error_style)
+            cell.addElement(P(text=str(trace_data[field])))
+            row.addElement(cell)
+        trace_table.addElement(row)
+    
+    doc.spreadsheet.addElement(trace_table)
+    
+    # Sheet 3: State Changes (if available)
+    if state_diff:
+        state_table = Table(name="State Changes")
+        
+        # Headers
+        header_row = TableRow()
+        for header in ["Account", "Type", "Old Value", "New Value"]:
+            cell = TableCell(stylename=header_style)
+            cell.addElement(P(text=header))
+            header_row.addElement(cell)
+        state_table.addElement(header_row)
+        
+        # Process state changes
+        pre_state = state_diff.get("pre", {})
+        post_state = state_diff.get("post", {})
+        
+        if not pre_state and not post_state:
+            pre_state = {}
+            post_state = state_diff
+        
+        all_addresses = set(pre_state.keys()) | set(post_state.keys())
+        
+        for addr in sorted(all_addresses):
+            pre = pre_state.get(addr, {})
+            post = post_state.get(addr, {})
+            
+            # Balance changes
+            pre_balance = pre.get("balance", "0x0")
+            post_balance = post.get("balance", pre_balance)
+            if pre_balance != post_balance:
+                row = TableRow()
+                cell1 = TableCell()
+                cell1.addElement(P(text=addr))
+                row.addElement(cell1)
+                cell2 = TableCell()
+                cell2.addElement(P(text="Balance"))
+                row.addElement(cell2)
+                cell3 = TableCell()
+                cell3.addElement(P(text=format_hex_value(pre_balance)))
+                row.addElement(cell3)
+                cell4 = TableCell()
+                cell4.addElement(P(text=format_hex_value(post_balance)))
+                row.addElement(cell4)
+                state_table.addElement(row)
+            
+            # Storage changes
+            pre_storage = pre.get("storage", {})
+            post_storage = post.get("storage", {})
+            all_slots = set(pre_storage.keys()) | set(post_storage.keys())
+            for slot in sorted(all_slots):
+                old_val = pre_storage.get(slot, "0x0")
+                new_val = post_storage.get(slot, "0x0")
+                if old_val != new_val:
+                    row = TableRow()
+                    cell1 = TableCell()
+                    cell1.addElement(P(text=addr))
+                    row.addElement(cell1)
+                    cell2 = TableCell()
+                    cell2.addElement(P(text=f"Storage[{slot}]"))
+                    row.addElement(cell2)
+                    cell3 = TableCell()
+                    cell3.addElement(P(text=old_val))
+                    row.addElement(cell3)
+                    cell4 = TableCell()
+                    cell4.addElement(P(text=new_val))
+                    row.addElement(cell4)
+                    state_table.addElement(row)
+        
+        doc.spreadsheet.addElement(state_table)
+    
+    # Save document
+    doc.save(filename)
+    print(f"{STYLE['success']} Trace exported to {STYLE['cyan']}{filename}{STYLE['reset']}")
+
 def main():
     parser = argparse.ArgumentParser(description="Advanced Ethereum Transaction Tracer")
     parser.add_argument("tx", help="Transaction hash (0x...) or 'sim' to simulate raw tx")
@@ -422,12 +626,22 @@ def main():
     parser.add_argument("--raw-tx-json", help="JSON file with transaction(s) to simulate")
     parser.add_argument("--tracer", default="callTracer", help="Tracer type")
     parser.add_argument("--state", action="store_true", help="Show state changes")
+    parser.add_argument("--odf", help="Export trace to ODF spreadsheet file")
     args = parser.parse_args()
     
     # Get RPC endpoint
     rpc = args.rpc or CHAINS.get(args.chain)
     if not rpc:
         sys.exit(f"No RPC for chain {args.chain}. Use --rpc")
+    
+    # Check if RPC is a placeholder
+    if rpc.startswith("YOUR_"):
+        print(f"{STYLE['red']}Error: RPC endpoint not configured{STYLE['reset']}")
+        print(f"\nPlease either:")
+        print(f"1. Update rpc.json with actual RPC URLs")
+        print(f"2. Use --rpc flag with a valid RPC URL")
+        print(f"\nNote: Make sure your RPC endpoint has debug_traceCall/debug_traceTransaction enabled")
+        sys.exit(1)
     
     tx_info = None
     state_diff = None
@@ -482,7 +696,20 @@ def main():
             sys.exit("Simulation requires --raw or --raw-tx-json")
         
         block = hex(int(args.block)) if args.block.isdigit() else args.block
-        trace = rpc_call(rpc, "debug_traceCall", [tx_params, block, {"tracer": args.tracer}])
+        
+        # For simulations, use the appropriate tracer based on --state flag
+        if args.state:
+            # Use prestateTracer with diffMode for state changes
+            trace_result = rpc_call(rpc, "debug_traceCall", [
+                tx_params, 
+                block, 
+                {"tracer": "prestateTracer", "tracerConfig": {"diffMode": True}}
+            ])
+            state_diff = trace_result
+            # Also get the call trace
+            trace = rpc_call(rpc, "debug_traceCall", [tx_params, block, {"tracer": args.tracer}])
+        else:
+            trace = rpc_call(rpc, "debug_traceCall", [tx_params, block, {"tracer": args.tracer}])
     else:
         # Get transaction info
         tx_info = rpc_call(rpc, "eth_getTransactionByHash", [args.tx])
@@ -505,6 +732,10 @@ def main():
             print_state_changes(state_diff)
         
         print_summary(trace, state_diff)
+        
+        # Export to ODF if requested
+        if args.odf:
+            export_to_odf(args.odf, tx_info, trace, state_diff)
     else:
         print(f"{STYLE['red']}Failed to retrieve trace data.{STYLE['reset']}")
         print(f"{STYLE['dim']}Possible reasons:{STYLE['reset']}")
