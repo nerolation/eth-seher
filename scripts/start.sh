@@ -40,7 +40,7 @@ echo ""
 
 # Start interceptor in background with logging
 echo "Starting interceptor (logs in interceptor.log)..."
-python3 -u -m src.eth_interceptor.interceptor > interceptor.log 2>&1 &
+python3 -u -c "from src.eth_interceptor.interceptor import app; app.run(host='0.0.0.0', port=8545, debug=False, use_reloader=False)" > interceptor.log 2>&1 &
 INTERCEPTOR_PID=$!
 
 # Wait for interceptor to start
@@ -62,8 +62,8 @@ cleanup() {
     echo ""
     echo "🛑 Stopping services..."
     # Kill the interceptor
-    pkill -f "src.eth_interceptor.interceptor" 2>/dev/null
-    sleep 1
+    kill $INTERCEPTOR_PID 2>/dev/null
+    wait $INTERCEPTOR_PID 2>/dev/null
     echo "✅ All processes stopped."
     
     # Show summary if transactions were intercepted
@@ -83,7 +83,7 @@ trap cleanup INT TERM
 echo "Starting transaction monitor..."
 echo "──────────────────────────────────────────────────────────"
 echo ""
-python3 -m src.eth_interceptor.monitor
+python3 -c "from src.eth_interceptor.monitor import TransactionMonitor; m = TransactionMonitor(); m.watch()"
 
 # If monitor exits normally, cleanup
 cleanup
