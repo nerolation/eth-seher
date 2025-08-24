@@ -6,6 +6,9 @@ __pycache__/
 .Python
 venv/
 env/
+*.egg-info/
+dist/
+build/
 
 # Test files
 test_*.py

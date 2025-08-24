@@ -2,6 +2,13 @@
 
 # Start the Ethereum Transaction Interceptor with Monitor
 
+# Get the project root directory
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+# Change to project root
+cd "$PROJECT_ROOT"
+
 clear
 echo "╔══════════════════════════════════════════════════════════╗"
 echo "║      ETHEREUM TRANSACTION INTERCEPTOR & SIMULATOR       ║"
@@ -22,7 +29,7 @@ mkdir -p submitted_txs
 echo "📡 Starting RPC Interceptor on port 8545..."
 echo ""
 echo "┌─────────────────────────────────────────────────────────┐"
-echo "│ Configure MetaMask:                                    │"
+echo "│ Configure your wallet:                                 │"
 echo "├─────────────────────────────────────────────────────────┤"
 echo "│  Network Name:     Local Interceptor                   │"
 echo "│  RPC URL:          http://localhost:8545               │"
@@ -33,7 +40,7 @@ echo ""
 
 # Start interceptor in background with logging
 echo "Starting interceptor (logs in interceptor.log)..."
-python3 -u interceptor.py > interceptor.log 2>&1 &
+python3 -u -m src.eth_interceptor.interceptor > interceptor.log 2>&1 &
 INTERCEPTOR_PID=$!
 
 # Wait for interceptor to start
@@ -55,8 +62,8 @@ cleanup() {
     echo ""
     echo "🛑 Stopping services..."
     # Kill the interceptor
-    kill $INTERCEPTOR_PID 2>/dev/null
-    wait $INTERCEPTOR_PID 2>/dev/null
+    pkill -f "src.eth_interceptor.interceptor" 2>/dev/null
+    sleep 1
     echo "✅ All processes stopped."
     
     # Show summary if transactions were intercepted
@@ -76,7 +83,7 @@ trap cleanup INT TERM
 echo "Starting transaction monitor..."
 echo "──────────────────────────────────────────────────────────"
 echo ""
-python3 monitor.py
+python3 -m src.eth_interceptor.monitor
 
 # If monitor exits normally, cleanup
 cleanup

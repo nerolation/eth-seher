@@ -1,0 +1,11 @@
+include README.md
+include LICENSE
+include requirements.txt
+recursive-include config *.json.example
+recursive-include examples *.json
+recursive-include scripts *.sh
+recursive-include docs *
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+recursive-exclude intercepted_txs *
+recursive-exclude submitted_txs *

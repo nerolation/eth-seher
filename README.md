@@ -1,5 +1,8 @@
 # Ethereum Transaction Interceptor & Simulator
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
+
 Advanced transaction interceptor and simulator for Ethereum with comprehensive call trace visualization and transaction analysis.
 
 ## Features
@@ -19,29 +22,50 @@ Advanced transaction interceptor and simulator for Ethereum with comprehensive c
 - Support for all transaction types (transfers, tokens, DeFi, failed txs)
 - Export traces to ODF spreadsheet format
 
-## Setup
+## Installation
 
-1. Install dependencies:
+### Quick Install
 ```bash
-pip install -r requirements.txt
+pip install eth-transaction-interceptor
 ```
 
-2. Configure your RPC endpoints in `rpc.json`:
+### From Source
+```bash
+git clone https://github.com/yourusername/eth-transaction-interceptor.git
+cd eth-transaction-interceptor
+pip install -e .
+```
+
+### Configuration
+
+1. Copy the example configuration:
+```bash
+cp config/rpc.json.example rpc.json
+```
+
+2. Edit `rpc.json` with your RPC endpoints:
 ```json
 {
-  "1": "https://your-mainnet-rpc-url",
-  "11155111": "https://your-sepolia-rpc-url"
+  "1": "YOUR_MAINNET_RPC_URL",
+  "11155111": "YOUR_SEPOLIA_RPC_URL"
 }
 ```
 
-**Note:** Make sure your RPC endpoint has debug_traceCall/debug_traceTransaction enabled
+**Note:** Your RPC endpoint must have debug_traceCall/debug_traceTransaction enabled
 
-## Quick Start - Full Pipeline
+For detailed installation instructions, see [docs/INSTALLATION.md](docs/INSTALLATION.md)
 
-Run the complete interception and simulation pipeline with one command:
+## Quick Start
+
+Run the complete interception and simulation pipeline:
 
 ```bash
-./start.sh
+eth-interceptor start
+```
+
+Or using the script directly:
+```bash
+./scripts/start.sh
 ```
 
 This will:
