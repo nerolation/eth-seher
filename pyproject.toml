@@ -1,0 +1,68 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eth-transaction-interceptor"
+version = "1.0.0"
+authors = [
+    {name = "Toni Wahrstätter", email = "info@toniwahrstaetter.com"},
+]
+description = "Advanced transaction interceptor and simulator for Ethereum"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Monitoring",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Environment :: Console",
+]
+keywords = ["ethereum", "web3", "transaction", "interceptor", "simulator", "blockchain", "defi"]
+dependencies = [
+    "web3>=6.0.0",
+    "eth-account>=0.10.0",
+    "eth-utils>=4.0.0",
+    "flask>=3.0.0",
+    "requests>=2.31.0",
+    "colorama>=0.4.6",
+    "odfpy>=1.4.1",
+    "rlp>=3.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/nerolation/eth-transaction-interceptor"
+Documentation = "https://github.com/nerolation/eth-transaction-interceptor/tree/main/docs"
+Repository = "https://github.com/nerolation/eth-transaction-interceptor"
+"Bug Tracker" = "https://github.com/nerolation/eth-transaction-interceptor/issues"
+
+[project.scripts]
+eth-interceptor = "eth_interceptor.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+    "twine>=4.0.0",
+    "build>=0.10.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+eth_interceptor = ["config/*.json.example"]

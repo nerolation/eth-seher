@@ -17,7 +17,7 @@ setup(
     description="Advanced transaction interceptor and simulator for Ethereum",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/eth-transaction-interceptor",
+    url="https://github.com/nerolation/eth-transaction-interceptor",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     classifiers=[
@@ -63,7 +63,7 @@ setup(
         "eth_interceptor": ["config/*.json.example"],
     },
     project_urls={
-        "Bug Reports": "https://github.com/yourusername/eth-transaction-interceptor/issues",
-        "Source": "https://github.com/yourusername/eth-transaction-interceptor",
+        "Bug Reports": "https://github.com/nerolation/eth-transaction-interceptor/issues",
+        "Source": "https://github.com/nerolation/eth-transaction-interceptor",
     },
 )
