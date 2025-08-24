@@ -12,8 +12,8 @@ long_description = (this_directory / "README.md").read_text()
 setup(
     name="eth-transaction-interceptor",
     version="1.0.0",
-    author="Your Name",
-    author_email="your.email@example.com",
+    author="Toni Wahrstätter",
+    author_email="info@toniwahrstaetter.com",
     description="Advanced transaction interceptor and simulator for Ethereum",
     long_description=long_description,
     long_description_content_type="text/markdown",

@@ -5,15 +5,14 @@ A professional toolkit for intercepting, analyzing, and simulating Ethereum tran
 """
 
 __version__ = "1.0.0"
-__author__ = "Your Name"
+__author__ = "Toni Wahrstätter"
 __license__ = "MIT"
 
+# Import only what actually exists
 from .interceptor import app as interceptor_app
 from .monitor import TransactionMonitor
-from .trace import EthereumTracer
 
 __all__ = [
     "interceptor_app",
-    "TransactionMonitor", 
-    "EthereumTracer"
+    "TransactionMonitor"
 ]
