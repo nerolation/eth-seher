@@ -21,3 +21,14 @@ get_recent_txs.sh
 # OS
 .DS_Store
 Thumbs.db
+
+# Sensitive configuration
+rpc.json
+
+# Interceptor data
+intercepted_txs/
+submitted_txs/
+interceptor.log
+
+# Test files
+test_interceptor.py

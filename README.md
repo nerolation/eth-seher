@@ -1,9 +1,16 @@
-# Ethereum Transaction Tracer
+# Ethereum Transaction Interceptor & Simulator
 
-Advanced transaction tracer for Ethereum with comprehensive call trace visualization.
+Advanced transaction interceptor and simulator for Ethereum with comprehensive call trace visualization and transaction analysis.
 
 ## Features
 
+### Transaction Interception
+- Intercept transactions from wallets (MetaMask, Rabby, etc.)
+- Block and log all transaction submission methods
+- Decode and display transaction details in JSON format
+- Save raw transactions for later submission
+
+### Transaction Simulation
 - Trace existing transactions or simulate raw transactions
 - Visual tree structure of all internal calls
 - Method signature resolution via 4byte directory
@@ -29,7 +36,44 @@ pip install -r requirements.txt
 
 **Note:** Make sure your RPC endpoint has debug_traceCall/debug_traceTransaction enabled
 
-## Usage
+## Quick Start - Full Pipeline
+
+Run the complete interception and simulation pipeline with one command:
+
+```bash
+./start.sh
+```
+
+This will:
+1. Start the RPC interceptor on port 8545
+2. Monitor for intercepted transactions
+3. Automatically simulate each transaction
+4. Prompt you to submit or discard each transaction
+
+Configure your wallet:
+1. Go to Settings → Networks
+2. Add Custom RPC
+3. Set RPC URL to: `http://localhost:8545`
+4. Set Chain ID to: 1 (Mainnet)
+
+## Advanced Usage
+
+### Individual Components
+
+#### Start Interceptor Only
+```bash
+python3 interceptor.py
+```
+
+#### Submit Latest Intercepted Transaction
+```bash
+python3 submit_tx.py --latest
+```
+
+#### Submit Specific Raw Transaction
+```bash
+python3 submit_tx.py intercepted_txs/tx_20231124_123456.raw
+```
 
 ### Trace existing transaction
 ```bash
