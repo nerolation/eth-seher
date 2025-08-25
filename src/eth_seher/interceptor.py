@@ -6,6 +6,7 @@ import os
 import sys
 import time
 import logging
+import threading
 from datetime import datetime
 from web3 import Web3
 import hashlib
@@ -14,10 +15,15 @@ import hashlib
 CHAIN_ID = None
 UP = None
 rpc_config = None
+initialization_lock = threading.Lock()
 
 def initialize_rpc():
     """Initialize RPC configuration - called when app starts"""
-    global CHAIN_ID, UP, rpc_config
+    global CHAIN_ID, UP, rpc_config, rpc_initialized
+    
+    # Skip if already initialized
+    if rpc_initialized:
+        return
     
     # Get chain ID from environment
     CHAIN_ID = os.environ.get('CHAIN_ID', '1')
@@ -73,6 +79,9 @@ def initialize_rpc():
         print(f"⚠️  WARNING: RPC endpoint timed out during test", flush=True)
     except Exception as e:
         print(f"⚠️  WARNING: Could not test RPC endpoint: {e}", flush=True)
+    
+    # Mark as initialized
+    rpc_initialized = True
 
 # Configure Flask logging
 logging.getLogger('werkzeug').setLevel(logging.ERROR)  # Suppress Flask's default logs
@@ -336,8 +345,10 @@ def ensure_rpc_initialized():
     """Ensure RPC is initialized before handling requests"""
     global rpc_initialized
     if not rpc_initialized:
-        initialize_rpc()
-        rpc_initialized = True
+        with initialization_lock:
+            # Double-check inside the lock
+            if not rpc_initialized:
+                initialize_rpc()
 
 @app.route("/", methods=["GET", "POST"])
 def rpc():

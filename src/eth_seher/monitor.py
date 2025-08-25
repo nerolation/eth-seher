@@ -6,6 +6,10 @@ import time
 import subprocess
 import sys
 from datetime import datetime
+from colorama import init, Fore, Back, Style
+
+# Initialize colorama for cross-platform colored output
+init(autoreset=True)
 
 class TransactionMonitor:
     def __init__(self, chain_id=1):
@@ -21,9 +25,9 @@ class TransactionMonitor:
                     
     def watch(self):
         """Watch for new transactions"""
-        print("=" * 80)
-        print("TRANSACTION MONITOR ACTIVE")
-        print("=" * 80)
+        print(Fore.GREEN + "=" * 80)
+        print(Fore.GREEN + "TRANSACTION MONITOR ACTIVE")
+        print(Fore.GREEN + "=" * 80)
         print(f"Watching directory: {self.tx_dir}/")
         print("Press Ctrl+C to stop\n")
         
@@ -52,9 +56,9 @@ class TransactionMonitor:
         """Process a new transaction"""
         tx_id = json_filename.replace("tx_", "").replace(".json", "")
         
-        print("\n" + "=" * 80)
-        print(f"NEW TRANSACTION INTERCEPTED: {tx_id}")
-        print("=" * 80)
+        print("\n" + Fore.RED + "=" * 80)
+        print(Fore.RED + f"NEW TRANSACTION INTERCEPTED: {tx_id}")
+        print(Fore.RED + "=" * 80)
         
         # Load transaction data
         json_path = os.path.join(self.tx_dir, json_filename)
@@ -102,17 +106,31 @@ class TransactionMonitor:
         except Exception as e:
             print(f"⚠️  Simulation error: {e}")
             
-        # Interactive options
-        print("\n" + "=" * 80)
-        print("OPTIONS:")
-        print("=" * 80)
-        print("1. Submit transaction to network")
-        print("2. Export simulation to ODF")
-        print("3. Continue monitoring (default)")
-        print("4. Exit")
+        # Interactive options with colored border
+        print("\n")
+        border_width = 78
+        print(Fore.CYAN + "╔" + "═" * border_width + "╗")
+        print(Fore.CYAN + "║" + Fore.YELLOW + Back.BLUE + " OPTIONS MENU ".center(border_width) + Back.RESET + Fore.CYAN + "║")
+        print(Fore.CYAN + "╠" + "═" * border_width + "╣")
+        
+        # Format menu options with proper padding
+        options = [
+            ("1", "Submit transaction to network"),
+            ("2", "Export simulation to ODF"),
+            ("3", "Continue monitoring (default)"),
+            ("4", "Exit")
+        ]
+        
+        for num, text in options:
+            # Calculate the visible text length (without color codes)
+            option_text = f"  {num}. {text}"
+            padding_needed = border_width - len(option_text)
+            print(Fore.CYAN + "║" + Fore.GREEN + f"  {num}. " + Fore.WHITE + text + " " * padding_needed + Fore.CYAN + "║")
+        
+        print(Fore.CYAN + "╚" + "═" * border_width + "╝")
         
         try:
-            choice = input("\nChoice [1-4, default=3]: ").strip() or "3"
+            choice = input(Fore.YELLOW + "\n➤ Choice [1-4, default=3]: " + Style.RESET_ALL).strip() or "3"
             
             if choice == "1" and has_raw:
                 self.submit_transaction(raw_path)
@@ -133,7 +151,7 @@ class TransactionMonitor:
         print("-" * 40)
         
         try:
-            cmd = [sys.executable, "submit_tx.py", raw_path, "--chain", str(self.chain_id)]
+            cmd = [sys.executable, "-m", "eth_seher.submit_tx", raw_path, "--chain", str(self.chain_id)]
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
             
             if result.stdout:
@@ -155,13 +173,17 @@ class TransactionMonitor:
         print(f"\n📊 Exporting to {output_file}...")
         
         try:
-            cmd = [sys.executable, "-m", "eth_seher.trace", "sim", "--raw-tx-json", json_path, "--odf", output_file]
+            cmd = [sys.executable, "-m", "eth_seher.trace", "sim", "--raw-tx-json", json_path, "--odf", output_file, "--chain", str(self.chain_id)]
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
             
             if result.returncode == 0:
                 print(f"✅ Exported to {output_file}")
             else:
-                print(f"❌ Export failed: {result.stderr}")
+                print(f"❌ Export failed")
+                if result.stdout:
+                    print(f"Output: {result.stdout}")
+                if result.stderr:
+                    print(f"Error: {result.stderr}")
                 
         except Exception as e:
             print(f"❌ Export error: {e}")
