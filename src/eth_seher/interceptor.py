@@ -12,7 +12,9 @@ import hashlib
 # Load RPC configuration
 with open('rpc.json', 'r') as f:
     rpc_config = json.load(f)
-    UP = rpc_config.get("1", rpc_config.get(1))  # Default to mainnet
+    # Get chain ID from environment or default to mainnet (1)
+    CHAIN_ID = os.environ.get('CHAIN_ID', '1')
+    UP = rpc_config.get(CHAIN_ID, rpc_config.get(int(CHAIN_ID), rpc_config.get("1")))
 
 # Configure Flask logging
 logging.getLogger('werkzeug').setLevel(logging.ERROR)  # Suppress Flask's default logs
@@ -85,7 +87,7 @@ def decode_raw_tx(raw_tx_hex):
                 "input": to_hex(decoded[7]) if decoded[7] else "0x",
                 "nonce": to_hex(int.from_bytes(decoded[1], 'big')) if decoded[1] else "0x0",
                 "type": "0x2",
-                "chainId": to_hex(int.from_bytes(decoded[0], 'big')) if decoded[0] else "0x1"
+                "chainId": to_hex(int.from_bytes(decoded[0], 'big')) if decoded[0] else to_hex(int(CHAIN_ID))
             }
             
             # Add EIP-1559 specific fields
@@ -109,7 +111,7 @@ def decode_raw_tx(raw_tx_hex):
                 "input": to_hex(decoded[6]) if decoded[6] else "0x",
                 "nonce": to_hex(int.from_bytes(decoded[1], 'big')) if decoded[1] else "0x0",
                 "type": "0x1",
-                "chainId": to_hex(int.from_bytes(decoded[0], 'big')) if decoded[0] else "0x1"
+                "chainId": to_hex(int.from_bytes(decoded[0], 'big')) if decoded[0] else to_hex(int(CHAIN_ID))
             }
             
         else:  # Legacy transaction
@@ -125,7 +127,7 @@ def decode_raw_tx(raw_tx_hex):
                 "input": to_hex(decoded[5]) if decoded[5] else "0x",
                 "nonce": to_hex(int.from_bytes(decoded[0], 'big')) if decoded[0] else "0x0",
                 "type": "0x0",
-                "chainId": "0x1"  # Try to extract from v value if needed
+                "chainId": to_hex(int(CHAIN_ID))  # Try to extract from v value if needed
             }
             
             # Try to extract chainId from v value for legacy transactions
@@ -151,7 +153,7 @@ def decode_raw_tx(raw_tx_hex):
                 "input": "0x",
                 "nonce": "0x0",
                 "type": "0x0",
-                "chainId": "0x1",
+                "chainId": to_hex(int(CHAIN_ID)),
                 "note": "Partial decode - showing sender only"
             }
         except Exception as e2:
@@ -213,7 +215,7 @@ def log_transaction(method, params):
                 "input": tx.get("data", tx.get("input", "0x")),
                 "nonce": tx.get("nonce", "0x0"),
                 "type": "0x0",
-                "chainId": "0x1"
+                "chainId": to_hex(int(CHAIN_ID))
             }
             log_rpc(f"{method}", "TX")
             print(f"   From: {tx_decoded.get('from', 'unknown')}")

@@ -8,9 +8,10 @@ import sys
 from datetime import datetime
 
 class TransactionMonitor:
-    def __init__(self):
+    def __init__(self, chain_id=1):
         self.tx_dir = "intercepted_txs"
         self.processed = set()
+        self.chain_id = chain_id
         
         # Load already processed transactions
         if os.path.exists(self.tx_dir):
@@ -82,7 +83,7 @@ class TransactionMonitor:
         print("-" * 40)
         
         try:
-            cmd = [sys.executable, "trace.py", "sim", "--raw-tx-json", json_path, "--state"]
+            cmd = [sys.executable, "trace.py", "sim", "--raw-tx-json", json_path, "--state", "--chain", str(self.chain_id)]
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
             
             # Show simulation output with clear formatting
@@ -132,7 +133,7 @@ class TransactionMonitor:
         print("-" * 40)
         
         try:
-            cmd = [sys.executable, "submit_tx.py", raw_path]
+            cmd = [sys.executable, "submit_tx.py", raw_path, "--chain", str(self.chain_id)]
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
             
             if result.stdout:
