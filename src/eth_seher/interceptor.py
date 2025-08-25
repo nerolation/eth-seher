@@ -3,23 +3,84 @@ from flask import Flask, request, jsonify, Response
 import requests
 import json
 import os
+import sys
 import time
 import logging
 from datetime import datetime
 from web3 import Web3
 import hashlib
 
-# Load RPC configuration
-with open('rpc.json', 'r') as f:
-    rpc_config = json.load(f)
-    # Get chain ID from environment or default to mainnet (1)
+# Global variables that will be initialized later
+CHAIN_ID = None
+UP = None
+rpc_config = None
+
+def initialize_rpc():
+    """Initialize RPC configuration - called when app starts"""
+    global CHAIN_ID, UP, rpc_config
+    
+    # Get chain ID from environment
     CHAIN_ID = os.environ.get('CHAIN_ID', '1')
-    UP = rpc_config.get(CHAIN_ID, rpc_config.get(int(CHAIN_ID), rpc_config.get("1")))
+    print(f"\n🔍 Starting with Chain ID: {CHAIN_ID}", flush=True)
+    
+    # Load RPC configuration
+    try:
+        with open('rpc.json', 'r') as f:
+            rpc_config = json.load(f)
+            print(f"✅ Loaded rpc.json with {len(rpc_config)} configured chains", flush=True)
+            print(f"   Available chains: {', '.join(str(k) for k in rpc_config.keys())}", flush=True)
+    except FileNotFoundError:
+        print("❌ ERROR: rpc.json not found! Please create it from rpc.json.example", flush=True)
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"❌ ERROR: Invalid JSON in rpc.json: {e}", flush=True)
+        sys.exit(1)
+    
+    # Find RPC endpoint for the chain (NO FALLBACKS)
+    UP = rpc_config.get(str(CHAIN_ID)) or rpc_config.get(int(CHAIN_ID))
+    if not UP:
+        print(f"\n❌ ERROR: No RPC endpoint configured for chain {CHAIN_ID}!", flush=True)
+        print(f"   Please add chain {CHAIN_ID} to rpc.json", flush=True)
+        print(f"   Available chains: {', '.join(str(k) for k in rpc_config.keys())}", flush=True)
+        sys.exit(1)
+    
+    print(f"✅ Using RPC endpoint: {UP[:50]}..." if len(UP) > 50 else f"✅ Using RPC endpoint: {UP}", flush=True)
+    
+    # Test the RPC endpoint
+    print(f"\n🧪 Testing RPC endpoint...", flush=True)
+    try:
+        test_response = requests.post(
+            UP,
+            json={"jsonrpc": "2.0", "method": "eth_chainId", "params": [], "id": 1},
+            timeout=5
+        )
+        if test_response.status_code == 200:
+            result = test_response.json()
+            if 'result' in result:
+                returned_chain_id = int(result['result'], 16)
+                expected_chain_id = int(CHAIN_ID)
+                if returned_chain_id == expected_chain_id:
+                    print(f"✅ RPC endpoint verified! Chain ID matches: {returned_chain_id}", flush=True)
+                else:
+                    print(f"⚠️  WARNING: Chain ID mismatch!", flush=True)
+                    print(f"   Expected: {expected_chain_id}, Got: {returned_chain_id}", flush=True)
+                    print(f"   The RPC endpoint might be for a different chain!", flush=True)
+            else:
+                print(f"⚠️  WARNING: RPC endpoint returned unexpected response: {result}", flush=True)
+        else:
+            print(f"⚠️  WARNING: RPC endpoint returned status {test_response.status_code}", flush=True)
+    except requests.exceptions.Timeout:
+        print(f"⚠️  WARNING: RPC endpoint timed out during test", flush=True)
+    except Exception as e:
+        print(f"⚠️  WARNING: Could not test RPC endpoint: {e}", flush=True)
 
 # Configure Flask logging
 logging.getLogger('werkzeug').setLevel(logging.ERROR)  # Suppress Flask's default logs
 
 app = Flask(__name__)
+
+# Flag to track if RPC has been initialized
+rpc_initialized = False
 
 # Methods to block
 BLOCK_METHODS = {
@@ -271,8 +332,17 @@ def intercept_response(req_id, raw_tx=None):
 # Counter for RPC calls
 rpc_counter = {"count": 0, "last_print": 0}
 
+def ensure_rpc_initialized():
+    """Ensure RPC is initialized before handling requests"""
+    global rpc_initialized
+    if not rpc_initialized:
+        initialize_rpc()
+        rpc_initialized = True
+
 @app.route("/", methods=["GET", "POST"])
 def rpc():
+    # Initialize RPC on first request
+    ensure_rpc_initialized()
     if request.method == "GET":
         return "RPC Interceptor Active", 200
     
@@ -342,16 +412,33 @@ def rpc():
         return jsonify({"jsonrpc": "2.0", "error": {"code": -32700, "message": f"Parse error: {e}"}}), 400
 
 if __name__ == "__main__":
+    # Initialize RPC when running directly
+    ensure_rpc_initialized()
+    
+    # Chain names for common networks
+    CHAIN_NAMES = {
+        "1": "Ethereum Mainnet",
+        "11155111": "Sepolia Testnet", 
+        "5": "Goerli Testnet",
+        "10": "Optimism",
+        "137": "Polygon",
+        "42161": "Arbitrum One",
+        "8453": "Base"
+    }
+    
+    chain_name = CHAIN_NAMES.get(str(CHAIN_ID), f"Chain {CHAIN_ID}")
+    
     print("\n" + "="*60, flush=True)
-    print("  RPC INTERCEPTOR STARTED", flush=True)
+    print("  🔮 SEHER - RPC INTERCEPTOR READY", flush=True)
     print("="*60, flush=True)
+    print(f"  Network:   {chain_name} (ID: {CHAIN_ID})", flush=True)
     print(f"  Port:      8545", flush=True)
-    print(f"  Upstream:  {UP[:50]}...", flush=True)
     print(f"  TX Dir:    {TX_DIR}/", flush=True)
-    print(f"  Submitted: {SUBMITTED_DIR}/", flush=True)
     print("="*60, flush=True)
-    print("\n  Monitoring for transactions...\n", flush=True)
-    print("  All RPC calls will be logged below:", flush=True)
+    print("\n  💡 Configure your wallet:", flush=True)
+    print(f"     RPC URL: http://localhost:8545", flush=True)
+    print(f"     Chain ID: {CHAIN_ID}", flush=True)
+    print("\n  🔍 Monitoring for transactions...\n", flush=True)
     print("-" * 60, flush=True)
     
     app.run(host="0.0.0.0", port=8545, debug=False, use_reloader=False)

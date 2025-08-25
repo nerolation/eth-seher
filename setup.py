@@ -11,7 +11,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name="eth-seher",
-    version="1.0.2",
+    version="1.0.5",
     author="Toni Wahrstätter",
     author_email="info@toniwahrstaetter.com",
     description="Seher - Ethereum Transaction Simulation and Analysis Tool",

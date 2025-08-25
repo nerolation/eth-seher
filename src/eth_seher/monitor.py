@@ -83,7 +83,7 @@ class TransactionMonitor:
         print("-" * 40)
         
         try:
-            cmd = [sys.executable, "trace.py", "sim", "--raw-tx-json", json_path, "--state", "--chain", str(self.chain_id)]
+            cmd = [sys.executable, "-m", "eth_seher.trace", "sim", "--raw-tx-json", json_path, "--state", "--chain", str(self.chain_id)]
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
             
             # Show simulation output with clear formatting
@@ -155,7 +155,7 @@ class TransactionMonitor:
         print(f"\n📊 Exporting to {output_file}...")
         
         try:
-            cmd = [sys.executable, "trace.py", "sim", "--raw-tx-json", json_path, "--odf", output_file]
+            cmd = [sys.executable, "-m", "eth_seher.trace", "sim", "--raw-tx-json", json_path, "--odf", output_file]
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
             
             if result.returncode == 0:

@@ -64,6 +64,25 @@ Examples:
     
     # Route to appropriate module
     if args.command == 'start':
+        # Set environment variable for chain ID
+        os.environ['CHAIN_ID'] = str(args.chain)
+        
+        # Chain names for display
+        chain_names = {
+            1: "Ethereum Mainnet",
+            11155111: "Sepolia Testnet",
+            5: "Goerli Testnet",
+            10: "Optimism",
+            137: "Polygon",
+            42161: "Arbitrum One",
+            8453: "Base"
+        }
+        chain_name = chain_names.get(args.chain, f"Chain {args.chain}")
+        
+        print(f"\n🚀 Starting Seher for {chain_name} (Chain ID: {args.chain})")
+        print(f"   Port: {args.port}")
+        print()
+        
         # Find the scripts directory
         script_path = Path(__file__).parent.parent.parent / 'scripts' / 'start.sh'
         if script_path.exists():
@@ -74,8 +93,9 @@ Examples:
         else:
             # Fallback to running both services
             print("Starting interceptor and monitor...")
-            from . import interceptor, monitor
+            # Environment variable must be set BEFORE importing interceptor
             import threading
+            from . import interceptor, monitor
             
             # Start interceptor in thread
             thread = threading.Thread(
@@ -90,12 +110,14 @@ Examples:
             mon.watch()
         
     elif args.command == 'intercept':
-        from . import interceptor
-        print(f"Starting interceptor on port {args.port} for chain {args.chain}...")
+        # Set environment variable BEFORE importing
         os.environ['CHAIN_ID'] = str(args.chain)
+        from . import interceptor
         interceptor.app.run(host="0.0.0.0", port=args.port, debug=False, use_reloader=False)
         
     elif args.command == 'monitor':
+        # Set environment variable BEFORE importing
+        os.environ['CHAIN_ID'] = str(args.chain)
         from . import monitor
         mon = monitor.TransactionMonitor(chain_id=args.chain)
         mon.watch()

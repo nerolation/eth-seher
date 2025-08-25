@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "eth-seher"
-version = "1.0.2"
+version = "1.0.8"
 authors = [
     {name = "Toni Wahrstätter", email = "info@toniwahrstaetter.com"},
 ]
