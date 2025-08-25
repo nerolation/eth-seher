@@ -1,13 +1,13 @@
-<div align="center">
-  <img src="assets/logo.png" alt="Seher Logo" width="200">
-</div>
-
 # Seher - Ethereum Transaction Simulation
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
 Advanced transaction simulation and analysis tool for Ethereum with comprehensive call trace visualization and state change tracking.
+
+<div align="center">
+  <img src="assets/logo.png" alt="Seher Logo" width="200">
+</div>
 
 ## Features
 
