@@ -12,7 +12,7 @@
 
 Start both the interceptor and monitor:
 ```bash
-eth-interceptor start
+eth-seher start
 ```
 
 Or using the script directly:
@@ -35,19 +35,19 @@ Or using the script directly:
 ### Start Interceptor Only
 
 ```bash
-eth-interceptor intercept
+eth-seher intercept
 ```
 
 Or on a different port:
 ```bash
-eth-interceptor intercept --port 8546
+eth-seher intercept --port 8546
 ```
 
 ### Monitor Intercepted Transactions
 
 In a separate terminal:
 ```bash
-eth-interceptor monitor
+eth-seher monitor
 ```
 
 ## Tracing Transactions
@@ -55,19 +55,19 @@ eth-interceptor monitor
 ### Trace an Existing Transaction
 
 ```bash
-eth-interceptor trace 0x457091a405e99a6579cbef5c04d515f2498d90df7b809627a1cb08094d1f9529
+eth-seher trace 0x457091a405e99a6579cbef5c04d515f2498d90df7b809627a1cb08094d1f9529
 ```
 
 ### Trace with State Changes
 
 ```bash
-eth-interceptor trace 0x457091a405e99a6579cbef5c04d515f2498d90df7b809627a1cb08094d1f9529 --state
+eth-seher trace 0x457091a405e99a6579cbef5c04d515f2498d90df7b809627a1cb08094d1f9529 --state
 ```
 
 ### Export to Spreadsheet
 
 ```bash
-eth-interceptor trace 0x457091a405e99a6579cbef5c04d515f2498d90df7b809627a1cb08094d1f9529 --odf output.ods
+eth-seher trace 0x457091a405e99a6579cbef5c04d515f2498d90df7b809627a1cb08094d1f9529 --odf output.ods
 ```
 
 ## Simulating Transactions
@@ -75,19 +75,19 @@ eth-interceptor trace 0x457091a405e99a6579cbef5c04d515f2498d90df7b809627a1cb0809
 ### From Raw Transaction
 
 ```bash
-eth-interceptor trace sim --raw "0x02f88e..." --block 23141310
+eth-seher trace sim --raw "0x02f88e..." --block 23141310
 ```
 
 ### From JSON File
 
 ```bash
-eth-interceptor trace sim --raw-tx-json examples/sample_tx.json
+eth-seher trace sim --raw-tx-json examples/sample_tx.json
 ```
 
 ### With State Changes
 
 ```bash
-eth-interceptor trace sim --raw-tx-json examples/sample_tx.json --state
+eth-seher trace sim --raw-tx-json examples/sample_tx.json --state
 ```
 
 ## Submitting Transactions
@@ -95,19 +95,19 @@ eth-interceptor trace sim --raw-tx-json examples/sample_tx.json --state
 ### Submit Latest Intercepted
 
 ```bash
-eth-interceptor submit --latest
+eth-seher submit --latest
 ```
 
 ### Submit Specific File
 
 ```bash
-eth-interceptor submit intercepted_txs/tx_20231124_123456.raw
+eth-seher submit intercepted_txs/tx_20231124_123456.raw
 ```
 
 ### Submit to Different Chain
 
 ```bash
-eth-interceptor submit --latest --chain 11155111
+eth-seher submit --latest --chain 11155111
 ```
 
 ## Advanced Features
@@ -117,7 +117,7 @@ eth-interceptor submit --latest --chain 11155111
 Process multiple transactions from a directory:
 ```bash
 for file in intercepted_txs/*.json; do
-    eth-interceptor trace sim --raw-tx-json "$file" --state
+    eth-seher trace sim --raw-tx-json "$file" --state
 done
 ```
 
@@ -125,14 +125,14 @@ done
 
 Override the default RPC:
 ```bash
-ETH_RPC_URL="https://your-rpc-url" eth-interceptor trace 0x...
+ETH_RPC_URL="https://your-rpc-url" eth-seher trace 0x...
 ```
 
 ### Debug Mode
 
 Enable verbose logging:
 ```bash
-DEBUG=1 eth-interceptor start
+DEBUG=1 eth-seher start
 ```
 
 ### Using with Scripts
@@ -144,7 +144,7 @@ import json
 
 # Trace a transaction
 result = subprocess.run(
-    ["eth-interceptor", "trace", "0x...", "--state"],
+    ["eth-seher", "trace", "0x...", "--state"],
     capture_output=True,
     text=True
 )

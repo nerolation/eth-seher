@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Command-line interface for Ethereum Transaction Interceptor
+Command-line interface for Seher - Ethereum Transaction Simulation
 """
 
 import sys
@@ -11,15 +11,15 @@ from pathlib import Path
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Ethereum Transaction Interceptor & Simulator",
+        description="Seher - Ethereum Transaction Simulation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  eth-interceptor start           Start interceptor and monitor
-  eth-interceptor intercept       Start interceptor only  
-  eth-interceptor monitor         Start monitor only
-  eth-interceptor trace TX_HASH   Trace a transaction
-  eth-interceptor submit --latest Submit latest intercepted transaction
+  eth-seher start           Start interceptor and monitor
+  eth-seher intercept       Start interceptor only  
+  eth-seher monitor         Start monitor only
+  eth-seher trace TX_HASH   Trace a transaction
+  eth-seher submit --latest Submit latest intercepted transaction
         """
     )
     
@@ -28,13 +28,16 @@ Examples:
     # Start command (default - runs both interceptor and monitor)
     start_parser = subparsers.add_parser('start', help='Start interceptor and monitor')
     start_parser.add_argument('--port', type=int, default=8545, help='Port for interceptor')
+    start_parser.add_argument('--chain', type=int, default=1, help='Chain ID')
     
     # Intercept command (interceptor only)
     intercept_parser = subparsers.add_parser('intercept', help='Start interceptor only')
     intercept_parser.add_argument('--port', type=int, default=8545, help='Port for interceptor')
+    intercept_parser.add_argument('--chain', type=int, default=1, help='Chain ID')
     
     # Monitor command (monitor only)
     monitor_parser = subparsers.add_parser('monitor', help='Start transaction monitor')
+    monitor_parser.add_argument('--chain', type=int, default=1, help='Chain ID')
     
     # Trace command
     trace_parser = subparsers.add_parser('trace', help='Trace a transaction')
@@ -64,7 +67,10 @@ Examples:
         # Find the scripts directory
         script_path = Path(__file__).parent.parent.parent / 'scripts' / 'start.sh'
         if script_path.exists():
-            subprocess.run(['bash', str(script_path)])
+            env = os.environ.copy()
+            env['CHAIN_ID'] = str(args.chain)
+            env['PORT'] = str(args.port)
+            subprocess.run(['bash', str(script_path)], env=env)
         else:
             # Fallback to running both services
             print("Starting interceptor and monitor...")
@@ -80,17 +86,18 @@ Examples:
             thread.start()
             
             # Run monitor in main thread
-            mon = monitor.TransactionMonitor()
+            mon = monitor.TransactionMonitor(chain_id=args.chain)
             mon.watch()
         
     elif args.command == 'intercept':
         from . import interceptor
-        print(f"Starting interceptor on port {args.port}...")
+        print(f"Starting interceptor on port {args.port} for chain {args.chain}...")
+        os.environ['CHAIN_ID'] = str(args.chain)
         interceptor.app.run(host="0.0.0.0", port=args.port, debug=False, use_reloader=False)
         
     elif args.command == 'monitor':
         from . import monitor
-        mon = monitor.TransactionMonitor()
+        mon = monitor.TransactionMonitor(chain_id=args.chain)
         mon.watch()
         
     elif args.command == 'trace':

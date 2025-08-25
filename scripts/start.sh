@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Start the Ethereum Transaction Interceptor with Monitor
+# Start Seher - Ethereum Transaction Simulation with Monitor
 
 # Get the project root directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,15 +9,19 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 # Change to project root
 cd "$PROJECT_ROOT"
 
+# Get chain ID and port from environment or use defaults
+CHAIN_ID="${CHAIN_ID:-1}"
+PORT="${PORT:-8545}"
+
 clear
 echo "╔══════════════════════════════════════════════════════════╗"
-echo "║      ETHEREUM TRANSACTION INTERCEPTOR & SIMULATOR       ║"
+echo "║           SEHER - ETHEREUM TRANSACTION SIMULATION        ║"
 echo "╚══════════════════════════════════════════════════════════╝"
 echo ""
 
 # Check if interceptor is already running
-if lsof -Pi :8545 -sTCP:LISTEN -t >/dev/null 2>&1; then
-    echo "⚠️  Port 8545 is already in use!"
+if lsof -Pi :$PORT -sTCP:LISTEN -t >/dev/null 2>&1; then
+    echo "⚠️  Port $PORT is already in use!"
     echo "Kill the existing process or use a different port."
     exit 1
 fi
@@ -26,21 +30,21 @@ fi
 mkdir -p intercepted_txs
 mkdir -p submitted_txs
 
-echo "📡 Starting RPC Interceptor on port 8545..."
+echo "📡 Starting RPC Interceptor on port $PORT for chain $CHAIN_ID..."
 echo ""
 echo "┌─────────────────────────────────────────────────────────┐"
 echo "│ Configure your wallet:                                 │"
 echo "├─────────────────────────────────────────────────────────┤"
 echo "│  Network Name:     Local Interceptor                   │"
-echo "│  RPC URL:          http://localhost:8545               │"
-echo "│  Chain ID:         1                                   │"
+printf "│  RPC URL:          http://localhost:%-18s │\n" "$PORT"
+printf "│  Chain ID:         %-36s │\n" "$CHAIN_ID"
 echo "│  Currency Symbol:  ETH                                 │"
 echo "└─────────────────────────────────────────────────────────┘"
 echo ""
 
 # Start interceptor in background with logging
 echo "Starting interceptor (logs in interceptor.log)..."
-python3 -u -c "from src.eth_interceptor.interceptor import app; app.run(host='0.0.0.0', port=8545, debug=False, use_reloader=False)" > interceptor.log 2>&1 &
+CHAIN_ID=$CHAIN_ID python3 -u -c "import os; os.environ['CHAIN_ID'] = '$CHAIN_ID'; from src.eth_seher.interceptor import app; app.run(host='0.0.0.0', port=$PORT, debug=False, use_reloader=False)" > interceptor.log 2>&1 &
 INTERCEPTOR_PID=$!
 
 # Wait for interceptor to start
@@ -83,7 +87,7 @@ trap cleanup INT TERM
 echo "Starting transaction monitor..."
 echo "──────────────────────────────────────────────────────────"
 echo ""
-python3 -c "from src.eth_interceptor.monitor import TransactionMonitor; m = TransactionMonitor(); m.watch()"
+python3 -c "from src.eth_seher.monitor import TransactionMonitor; m = TransactionMonitor(chain_id=$CHAIN_ID); m.watch()"
 
 # If monitor exits normally, cleanup
 cleanup

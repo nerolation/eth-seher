@@ -1,9 +1,9 @@
-# Ethereum Transaction Interceptor & Simulator
+# Seher - Ethereum Transaction Simulation
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
-Advanced transaction interceptor and simulator for Ethereum with comprehensive call trace visualization and transaction analysis.
+Advanced transaction simulation and analysis tool for Ethereum with comprehensive call trace visualization and state change tracking.
 
 ## Features
 
@@ -26,13 +26,13 @@ Advanced transaction interceptor and simulator for Ethereum with comprehensive c
 
 ### Quick Install
 ```bash
-pip install eth-transaction-interceptor
+pip install eth-seher
 ```
 
 ### From Source
 ```bash
-git clone https://github.com/yourusername/eth-transaction-interceptor.git
-cd eth-transaction-interceptor
+git clone https://github.com/yourusername/eth-seher.git
+cd eth-seher
 pip install -e .
 ```
 
@@ -60,7 +60,7 @@ For detailed installation instructions, see [docs/INSTALLATION.md](docs/INSTALLA
 Run the complete interception and simulation pipeline:
 
 ```bash
-eth-interceptor start
+eth-seher start
 ```
 
 Or using the script directly:

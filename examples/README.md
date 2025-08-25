@@ -22,24 +22,24 @@ USDC token transfer (1 USDC)
 
 ### Simulate ETH Transfer
 ```bash
-eth-interceptor trace sim --raw-tx-json examples/sample_tx.json --state
+eth-seher trace sim --raw-tx-json examples/sample_tx.json --state
 ```
 
 ### Simulate Token Transfer
 ```bash
-eth-interceptor trace sim --raw-tx-json examples/sample_token_tx.json --state
+eth-seher trace sim --raw-tx-json examples/sample_token_tx.json --state
 ```
 
 ### Export to Spreadsheet
 ```bash
-eth-interceptor trace sim --raw-tx-json examples/sample_tx.json --odf output.ods
+eth-seher trace sim --raw-tx-json examples/sample_tx.json --odf output.ods
 ```
 
 ## Creating Your Own Examples
 
 1. Intercept a real transaction:
 ```bash
-eth-interceptor start
+eth-seher start
 ```
 
 2. Send a transaction through your wallet

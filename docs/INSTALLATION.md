@@ -11,15 +11,15 @@
 ### Using pip (recommended)
 
 ```bash
-pip install eth-transaction-interceptor
+pip install eth-seher
 ```
 
 ### From source
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/eth-transaction-interceptor.git
-cd eth-transaction-interceptor
+git clone https://github.com/yourusername/eth-seher.git
+cd eth-seher
 ```
 
 2. Install dependencies:
@@ -53,7 +53,7 @@ cp config/rpc.json.example rpc.json
 
 Test the installation:
 ```bash
-eth-interceptor --help
+eth-seher --help
 ```
 
 You should see the available commands and options.
@@ -62,12 +62,12 @@ You should see the available commands and options.
 
 Build the Docker image:
 ```bash
-docker build -t eth-interceptor .
+docker build -t eth-seher .
 ```
 
 Run the container:
 ```bash
-docker run -p 8545:8545 eth-interceptor
+docker run -p 8545:8545 eth-seher
 ```
 
 ## Troubleshooting
@@ -76,7 +76,7 @@ docker run -p 8545:8545 eth-interceptor
 
 If port 8545 is already in use:
 ```bash
-eth-interceptor start --port 8546
+eth-seher start --port 8546
 ```
 
 ### Missing Dependencies
@@ -90,7 +90,7 @@ pip install --upgrade -r requirements.txt
 
 On Linux/macOS, you might need to use sudo:
 ```bash
-sudo pip install eth-transaction-interceptor
+sudo pip install eth-seher
 ```
 
 Or better, use a virtual environment:

@@ -3,12 +3,12 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "eth-transaction-interceptor"
-version = "1.0.0"
+name = "eth-seher"
+version = "1.0.1"
 authors = [
     {name = "Toni Wahrstätter", email = "info@toniwahrstaetter.com"},
 ]
-description = "Advanced transaction interceptor and simulator for Ethereum"
+description = "Seher - Ethereum Transaction Simulation and Analysis Tool"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.8"
@@ -29,7 +29,7 @@ classifiers = [
     "Operating System :: OS Independent",
     "Environment :: Console",
 ]
-keywords = ["ethereum", "web3", "transaction", "interceptor", "simulator", "blockchain", "defi"]
+keywords = ["ethereum", "web3", "transaction", "simulation", "analysis", "blockchain", "defi", "seher"]
 dependencies = [
     "web3>=6.0.0",
     "eth-account>=0.10.0",
@@ -42,13 +42,13 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/nerolation/eth-transaction-interceptor"
-Documentation = "https://github.com/nerolation/eth-transaction-interceptor/tree/main/docs"
-Repository = "https://github.com/nerolation/eth-transaction-interceptor"
-"Bug Tracker" = "https://github.com/nerolation/eth-transaction-interceptor/issues"
+Homepage = "https://github.com/nerolation/eth-seher"
+Documentation = "https://github.com/nerolation/eth-seher/tree/main/docs"
+Repository = "https://github.com/nerolation/eth-seher"
+"Bug Tracker" = "https://github.com/nerolation/eth-seher/issues"
 
 [project.scripts]
-eth-interceptor = "eth_interceptor.cli:main"
+eth-seher = "eth_seher.cli:main"
 
 [project.optional-dependencies]
 dev = [
@@ -65,4 +65,4 @@ dev = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-eth_interceptor = ["config/*.json.example"]
+eth_seher = ["config/*.json.example"]

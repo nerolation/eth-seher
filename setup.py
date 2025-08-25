@@ -1,5 +1,5 @@
 """
-Setup configuration for Ethereum Transaction Interceptor
+Setup configuration for Seher - Ethereum Transaction Simulation
 """
 
 from setuptools import setup, find_packages
@@ -10,14 +10,14 @@ this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
 setup(
-    name="eth-transaction-interceptor",
-    version="1.0.0",
+    name="eth-seher",
+    version="1.0.1",
     author="Toni Wahrstätter",
     author_email="info@toniwahrstaetter.com",
-    description="Advanced transaction interceptor and simulator for Ethereum",
+    description="Seher - Ethereum Transaction Simulation and Analysis Tool",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/nerolation/eth-transaction-interceptor",
+    url="https://github.com/nerolation/eth-seher",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     classifiers=[
@@ -55,15 +55,15 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "eth-interceptor=eth_interceptor.cli:main",
+            "eth-seher=eth_seher.cli:main",
         ],
     },
     include_package_data=True,
     package_data={
-        "eth_interceptor": ["config/*.json.example"],
+        "eth_seher": ["config/*.json.example"],
     },
     project_urls={
-        "Bug Reports": "https://github.com/nerolation/eth-transaction-interceptor/issues",
-        "Source": "https://github.com/nerolation/eth-transaction-interceptor",
+        "Bug Reports": "https://github.com/nerolation/eth-seher/issues",
+        "Source": "https://github.com/nerolation/eth-seher",
     },
 )
