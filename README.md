@@ -1,3 +1,7 @@
+<div align="center">
+  <img src="assets/logo.png" alt="Seher Logo" width="200">
+</div>
+
 # Seher - Ethereum Transaction Simulation
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
